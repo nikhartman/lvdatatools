@@ -99,7 +99,11 @@ def output_format(header):
         was performed. Returns a string array corresponding to column headers."""
     for i,line in enumerate(header):
         if line[0] == 'Binary Output Format':
-            return line[1].split(', ')[:-1]
+        	names = line[1].split(', ')
+        	if names[-1] == 'I(t)':
+        		return names[:-1]
+        	else:
+        		return names
 
 def sweep_variables(header):
     """ find the two variables swept in the measurement. this fails hard

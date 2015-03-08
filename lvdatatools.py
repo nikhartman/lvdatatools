@@ -66,7 +66,7 @@ def vi_gateswp_build(filelist):
 
 
 
-#############new and more useful stuff below here ##################
+############# new and more useful stuff below here ##################
 
 
 def get_txt(filename):
@@ -113,6 +113,14 @@ def sweep_variables(header):
                     slow=word
     return fast, slow
     
+def split_sweeps(df, col_name):
+	""" get indicies to split multiple sweeps and plot separately. """
+	# this could really be much better
+	# should have different options for different sweep types
+	#	right now it just returns zeros of the first derivative
+    ind = np.where(np.diff(df[col_name])==0)[0]
+    return np.concatenate(([0],ind,[len(df[col_name])]), axis=0)
+    
 def is_2d(filename):
     """ uses header info to try to determine if the data is 2d or 3d """   
     if os.path.isfile(filename[:-4]+'.txt'):
@@ -136,7 +144,7 @@ def get_data_2d(filename):
     data = data.reshape((-1,data[0]))
     data = data.byteswap().newbyteorder()
     col_names = output_format(header)
-    if data[0,0] == 6.0:
+    if data[0,0] <= 6.0:
         return pd.DataFrame(data, columns=col_names)
     else:
         col_names.extend(['i'+str(n) for n in range(int(data[0,0]-6))])

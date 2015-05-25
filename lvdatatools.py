@@ -1,5 +1,3 @@
-#better ideas....
-
 #all of these are meant to work with the CNT current measurements. assume you are always measuring current versus 
 #some other parameters. 
 
@@ -99,11 +97,11 @@ def output_format(header):
         was performed. Returns a string array corresponding to column headers."""
     for i,line in enumerate(header):
         if line[0] == 'Binary Output Format':
-        	names = line[1].split(', ')
-        	if names[-1] == 'I(t)':
-        		return names[:-1]
-        	else:
-        		return names
+            names = line[1].split(', ')
+            if names[-1] == 'I(t)':
+                return names[:-1]
+            else:
+                return names
 
 def sweep_variables(header):
     """ find the two variables swept in the measurement. this fails hard
@@ -118,10 +116,12 @@ def sweep_variables(header):
     return fast, slow
     
 def split_sweeps(df, col_name):
-	""" get indicies to split multiple sweeps and plot separately. """
-	# this could really be much better
-	# should have different options for different sweep types
-	#	right now it just returns zeros of the first derivative
+    """ get indicies to split multiple sweeps and plot separately. """
+    
+    # this could really be much better
+    # should have different options for different sweep types
+    # right now it just returns zeros of the first derivative
+    
     ind = np.where(np.diff(df[col_name])==0)[0]
     return np.concatenate(([0],ind,[len(df[col_name])]), axis=0)
     
@@ -149,7 +149,7 @@ def get_data_2d(filename):
     data = data.byteswap().newbyteorder()
     col_names = output_format(header)
     if data[0,0] <= 6.0:
-        return pd.DataFrame(data, columns=col_names)
+        return pd.DataFrame(data, columns=col_names[0:int(data[0,0])])
     else:
         col_names.extend(['i'+str(n) for n in range(int(data[0,0]-6))])
         return pd.DataFrame(data, columns=col_names)
@@ -187,28 +187,28 @@ def replace_ticks(ax, xlabels = None, ylabels = None):
     
 def plot_simple_2d(df):
     """ a fast way of recreating the labview plots so I can tell whats what """
-    fig = plt.figure(figsize=(8,6))
+    fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     xlabel = df.columns.values[1]
     ylabel = df.columns.values[2]
-    ax.plot(df.iloc[:,1], df.iloc[:,2], linewidth=2)
-    ax.set_xlabel(r'${0}$'.format(xlabel), fontsize=14)
-    ax.set_ylabel(r'${0}$'.format(ylabel), fontsize=14)
+    ax.plot(df.iloc[:,1], df.iloc[:,2])
+    ax.set_xlabel('{0}'.format(xlabel))
+    ax.set_ylabel('{0}'.format(ylabel))
     return fig, ax #this isn't quite right/works well enough for now
 
 def plot_simple_3d(df):
     """ this is a little sloppy, but it gets the point across quickly """
     df = df.groupby(df.index).mean()
-    fig = plt.figure(figsize=(12,6))
+    fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     limits = [df.columns.values.min(), df.columns.values.max(),df.index[0],df.index[-1]]
-    im = ax.imshow(df*1e9, extent = limits, 
+    im = ax.imshow(df, extent = limits, 
                cmap = plt.cm.seismic,
                origin = 'lower', aspect = 'auto', interpolation = 'None')
-    ax.set_xlabel(r'${0}$'.format(df.columns.name), fontsize=16)
-    ax.set_ylabel(r'${0}$'.format(df.index.name), fontsize=16)
+    ax.set_xlabel('{0}'.format(df.columns.name))
+    ax.set_ylabel('{0}'.format(df.index.name))
     cb = plt.colorbar(im)
-    cb.set_label(r'$I (nA)$', fontsize=16)
+    cb.set_label('I (nA)')
     return fig, ax, cb
 
 def quick_plot_any(filename):
